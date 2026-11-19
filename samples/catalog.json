@@ -2,5 +2,9 @@
   "office-network.pcap": {
     "title": "Office network",
     "description": "Ten minutes of traffic on a small office LAN: workstations, a file server, DNS, web browsing and a field sensor reporting to a ground station."
+  },
+  "office-network.pcapng": {
+    "title": "Office network (pcapng)",
+    "description": "The same ten minutes of office traffic, saved in the newer pcapng format."
   }
 }

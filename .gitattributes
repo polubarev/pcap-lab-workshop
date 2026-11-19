@@ -7,3 +7,4 @@
 *.json text eol=lf
 *.pcap binary
 *.cap binary
+*.pcapng binary
