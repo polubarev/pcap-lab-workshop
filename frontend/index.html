@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PCAP Lab</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230f62fe'/%3E%3Ccircle cx='10' cy='11' r='3' fill='white'/%3E%3Ccircle cx='22' cy='9' r='3' fill='white'/%3E%3Ccircle cx='16' cy='22' r='3' fill='white'/%3E%3Cpath d='M10 11 22 9 16 22Z' fill='none' stroke='white' stroke-width='1.5'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8"/><circle cx="10" cy="11" r="3"/><circle cx="22" cy="9" r="3"/><circle cx="16" cy="22" r="3"/><path d="M10 11 22 9 16 22Z"/></svg>
+      <span class="brand-name">PCAP Lab</span>
+    </div>
+
+    <nav class="views" id="view-tabs" hidden>
+      <button class="view-tab active" data-view="network">Network</button>
+      <button class="view-tab" data-view="packets">Packets</button>
+    </nav>
+
+    <div class="topbar-right">
+      <div class="capture-chip" id="capture-chip" hidden>
+        <span class="dot"></span><span id="capture-name"></span>
+      </div>
+      <button class="btn btn-primary" id="open-button">Open capture</button>
+      <input type="file" id="file-input" accept=".pcap,.cap" hidden>
+    </div>
+  </header>
+
+  <!-- Start screen -->
+  <main id="start-screen" class="start">
+    <section class="start-hero">
+      <h1>See who talks to whom.</h1>
+      <p>Open a packet capture to explore its hosts, conversations and packets, down to the last byte.</p>
+    </section>
+
+    <section class="dropzone" id="dropzone" tabindex="0">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0-4 4m4-4 4 4M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+      <div><strong>Drop a .pcap file here</strong> or click to browse</div>
+      <div class="muted small">Classic pcap format, up to 50 MB</div>
+    </section>
+
+    <section class="samples">
+      <h2>Or start with a sample</h2>
+      <div class="sample-grid" id="sample-grid"></div>
+    </section>
+  </main>
+
+  <!-- Workspace -->
+  <main id="workspace" class="workspace" hidden>
+    <section class="kpis" id="kpis"></section>
+
+    <!-- Network view -->
+    <section class="view" id="view-network">
+      <div class="network-grid">
+        <div class="card graph-card">
+          <div class="card-toolbar">
+            <div class="segmented" id="protocol-filter">
+              <button class="active" data-protocol="">All</button>
+              <button data-protocol="TCP">TCP</button>
+              <button data-protocol="UDP">UDP</button>
+              <button data-protocol="ICMP">ICMP</button>
+              <button data-protocol="ARP">ARP</button>
+            </div>
+            <label class="slider">
+              <span>Min packets <b id="min-packets-value">1</b></span>
+              <input type="range" id="min-packets" min="1" max="50" value="1">
+            </label>
+            <div class="search">
+              <input type="search" id="host-search" placeholder="Find host (IP)…" autocomplete="off">
+            </div>
+            <div class="toolbar-actions">
+              <span class="muted small zoom-hint">Ctrl + scroll to zoom</span>
+              <button class="icon-btn" id="fit-graph" title="Fit to screen"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+              <button class="icon-btn" id="relayout-graph" title="Re-arrange"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg></button>
+            </div>
+          </div>
+          <div class="graph-wrap">
+            <div id="graph"></div>
+            <div class="graph-empty" id="graph-empty" hidden>No conversations match these filters.</div>
+            <div class="legend">
+              <span><i class="swatch internal"></i>Internal host</span>
+              <span><i class="swatch external"></i>External host</span>
+              <span><i class="swatch hub"></i>Hub</span>
+              <span class="legend-sep"></span>
+              <span><i class="line tcp"></i>TCP</span>
+              <span><i class="line udp"></i>UDP</span>
+              <span><i class="line icmp"></i>ICMP</span>
+              <span><i class="line arp"></i>ARP</span>
+              <span><i class="line mixed"></i>Mixed</span>
+            </div>
+          </div>
+        </div>
+
+        <aside class="card inspector" id="inspector"></aside>
+      </div>
+
+      <div class="card timeline-card">
+        <div class="card-head">
+          <h3>Traffic over time</h3>
+          <span class="muted small" id="timeline-caption"></span>
+        </div>
+        <div id="timeline"></div>
+      </div>
+    </section>
+
+    <!-- Packets view -->
+    <section class="view" id="view-packets" hidden>
+      <div class="packets-grid">
+        <div class="card packets-card">
+          <div class="card-toolbar">
+            <div class="filter-chips" id="packet-filters"></div>
+            <div class="packet-filter-inputs">
+              <input type="search" id="packet-ip" placeholder="IP address" autocomplete="off">
+              <select id="packet-protocol">
+                <option value="">Any protocol</option>
+                <option>TCP</option><option>UDP</option><option>ICMP</option><option>ARP</option><option>Other</option>
+              </select>
+              <input type="number" id="packet-port" placeholder="Port" min="0" max="65535">
+            </div>
+            <span class="muted small" id="packet-count"></span>
+          </div>
+          <div class="table-wrap" id="packet-table-wrap">
+            <table class="packet-table">
+              <thead><tr><th>No.</th><th>Time (s)</th><th>Source</th><th>Destination</th><th>Protocol</th><th>Length</th><th>Info</th></tr></thead>
+              <tbody id="packet-rows"></tbody>
+            </table>
+          </div>
+          <div class="pager">
+            <button class="btn btn-ghost" id="prev-page">← Previous</button>
+            <span class="muted small" id="page-label"></span>
+            <button class="btn btn-ghost" id="next-page">Next →</button>
+          </div>
+        </div>
+
+        <aside class="card packet-detail" id="packet-detail">
+          <div class="placeholder">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h7"/></svg>
+            <p>Select a packet to see its layers and bytes.</p>
+          </div>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <div class="loading" id="loading" hidden><div class="spinner"></div><span id="loading-text">Reading capture…</span></div>
+  <div class="toast" id="toast" hidden></div>
+
+  <script src="vendor/cytoscape.min.js"></script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
