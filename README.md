@@ -9,18 +9,15 @@ PCAP Lab is a small web app for exploring network captures. Open a `.pcap` file 
 
 It is the base application for the **IBM Bob hands-on workshop**. Workshop tasks are on the [wiki](../../wiki).
 
-## Set up (Windows)
+## Set up
 
-You need **Python 3.11 or newer** and **Git**. Check in PowerShell:
+You need **Python 3.11 or newer** and **Git**. The app runs the same on Windows and macOS (Linux works too).
+
+### Windows (PowerShell)
 
 ```powershell
 python --version
 git --version
-```
-
-Clone the repository and install the dependencies:
-
-```powershell
 git clone https://github.com/polubarev/pcap-lab-workshop.git
 cd pcap-lab-workshop
 python -m venv .venv
@@ -35,17 +32,29 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .venv\Scripts\Activate.ps1
 ```
 
-On macOS or Linux, use `python3 -m venv .venv` and `source .venv/bin/activate` instead.
+### macOS (Terminal)
 
-Check that everything is ready:
+```bash
+python3 --version
+git --version
+git clone https://github.com/polubarev/pcap-lab-workshop.git
+cd pcap-lab-workshop
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
 
-```powershell
+### Both
+
+With the environment active, `python` works on both systems. Activate it again in every new terminal. Then check that everything is ready:
+
+```
 python check_setup.py
 ```
 
 ## Run
 
-```powershell
+```
 python run.py
 ```
 
@@ -55,7 +64,7 @@ Options: `--port 8060` to use another port, `--no-browser` to skip opening a bro
 
 ## Test
 
-```powershell
+```
 python -m pytest
 ```
 

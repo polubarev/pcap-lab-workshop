@@ -9,7 +9,13 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
+WINDOWS = sys.platform == "win32"
 OK, FAIL = "[ OK ]", "[FAIL]"
+ACTIVATE = r".venv\Scripts\Activate.ps1" if WINDOWS else "source .venv/bin/activate"
+INSTALL_PYTHON = ("Install Python 3.11 or newer from python.org and tick 'Add python.exe to PATH'." if WINDOWS
+                  else "Install Python 3.11 or newer from python.org (or: brew install python@3.12).")
+INSTALL_GIT = ("Install Git for Windows from git-scm.com." if WINDOWS
+               else "Install Git: run xcode-select --install (macOS) or use your package manager.")
 problems = 0
 
 
@@ -25,11 +31,11 @@ def report(ok: bool, message: str, fix: str = "") -> None:
 def main() -> int:
     version = sys.version_info
     report(version >= (3, 11), f"Python {version.major}.{version.minor}.{version.micro}",
-           "Install Python 3.11 or newer from python.org and tick 'Add python.exe to PATH'.")
+           INSTALL_PYTHON)
 
     in_venv = sys.prefix != sys.base_prefix
     report(in_venv, "Running inside a virtual environment",
-           r"Activate it first: .venv\Scripts\Activate.ps1  (macOS/Linux: source .venv/bin/activate)")
+           f"Activate it first: {ACTIVATE}")
 
     for module in ("flask", "networkx", "pytest"):
         try:
@@ -39,7 +45,7 @@ def main() -> int:
             report(False, f"Package '{module}' is missing", "Run: pip install -r requirements.txt")
 
     git = shutil.which("git")
-    report(git is not None, "Git is installed", "Install Git for Windows from git-scm.com.")
+    report(git is not None, "Git is installed", INSTALL_GIT)
     if git:
         inside = subprocess.run([git, "rev-parse", "--is-inside-work-tree"], cwd=ROOT,
                                 capture_output=True, text=True).stdout.strip() == "true"
