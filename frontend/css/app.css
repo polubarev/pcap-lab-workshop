@@ -169,6 +169,7 @@ button, input, select { font: inherit; color: inherit; }
 .inspector section { display: flex; flex-direction: column; gap: 10px; }
 .inspector .title-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .host-title { font-family: var(--mono); font-size: 20px; font-weight: 600; }
+.host-name { font-family: var(--sans); font-size: 13px; font-weight: 500; color: var(--text-2); margin-top: 2px; }
 .badge { display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
 .badge.internal { background: rgba(69, 137, 255, .15); color: #a9c7ff; }
 .badge.external { background: rgba(241, 163, 60, .15); color: #ffd08a; }

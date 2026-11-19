@@ -5,10 +5,13 @@ import json
 import uuid
 from pathlib import Path
 
-from flask import Flask, abort, jsonify, request, send_from_directory
+import csv
+
+from flask import Flask, abort, jsonify, request, send_file, send_from_directory
 
 import decoders
 from analysis import build_graph, conversation_filter, host_table
+from hostnames import hostname_for
 from pcap_reader import PcapError
 from store import CaptureStore
 
@@ -16,6 +19,7 @@ ROOT = Path(__file__).resolve().parent.parent
 FRONTEND = ROOT / "frontend"
 SAMPLES = ROOT / "samples"
 UPLOADS = ROOT / "uploads"
+EXPORTS = ROOT / "exports"
 MAX_UPLOAD_MB = 50
 
 app = Flask(__name__, static_folder=None)
@@ -93,7 +97,10 @@ def capture_graph(capture_id: str):
     capture = _capture(capture_id)
     protocol = request.args.get("protocol") or None
     min_packets = request.args.get("min_packets", default=1, type=int)
-    return jsonify(build_graph(capture.packets, protocol=protocol, min_packets=min_packets))
+    graph = build_graph(capture.packets, protocol=protocol, min_packets=min_packets)
+    for node in graph["nodes"]:
+        node["name"] = hostname_for(capture.packets, node["id"])
+    return jsonify(graph)
 
 
 @app.get("/api/captures/<capture_id>/hosts/<ip>")
@@ -102,7 +109,24 @@ def host_details(capture_id: str, ip: str):
     hosts = host_table(capture.packets)
     if ip not in hosts:
         abort(404, description=f"{ip} is not in this capture")
-    return jsonify(hosts[ip])
+    return jsonify({**hosts[ip], "name": hostname_for(capture.packets, ip)})
+
+
+@app.get("/api/captures/<capture_id>/export")
+def export_conversations(capture_id: str):
+    """Write the conversation list as CSV and download it."""
+    capture = _capture(capture_id)
+    filename = request.args.get("filename", "conversations.csv")
+    graph = build_graph(capture.packets)
+    EXPORTS.mkdir(exist_ok=True)
+    path = EXPORTS / filename
+    with path.open("w", newline="", encoding="utf-8") as fh:
+        writer = csv.writer(fh)
+        writer.writerow(["host_a", "host_b", "packets", "bytes", "protocols", "services"])
+        for e in graph["edges"]:
+            writer.writerow([e["source"], e["target"], e["packets"], e["bytes"],
+                             " ".join(e["protocols"]), " ".join(e["services"])])
+    return send_file(path, as_attachment=True, download_name=Path(filename).name)
 
 
 @app.get("/api/captures/<capture_id>/packets")

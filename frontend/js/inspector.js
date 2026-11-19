@@ -49,7 +49,7 @@ export function renderHost(panel, host, node, edges, { onBack, onHost, onPackets
         el("button", { class: "link-btn", onclick: onBack }, "← Overview"),
         el("button", { class: "btn btn-ghost", onclick: () => onPackets({ ip: host.ip }) }, "Show packets"),
       ),
-      el("div", { class: "host-title" }, host.ip),
+      hostTitle(host),
       el("div", {},
         el("span", { class: `badge ${host.internal ? "internal" : "external"}` }, host.internal ? "Internal" : "External"),
         node?.hub ? el("span", { class: "badge hub", style: "margin-left:6px" }, "Hub") : null,
@@ -99,6 +99,14 @@ export function renderConversation(panel, edge, { onBack, onHost, onPackets }) {
       ),
     ),
   );
+}
+
+function hostTitle(host) {
+  const title = el("div", { class: "host-title" });
+  title.innerHTML = host.name
+    ? `${host.ip} <div class="host-name">${host.name}</div>`
+    : host.ip;
+  return title;
 }
 
 function stat(label, value, sub) {

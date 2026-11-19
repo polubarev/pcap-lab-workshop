@@ -46,6 +46,9 @@ A decoder is a function in `backend/decoders/` registered with `@decoder(name, p
 | `GET /api/captures/<id>/hosts/<ip>` | Counters for one host |
 | `GET /api/captures/<id>/packets?ip=&peer=&protocol=&port=&offset=&limit=` | A page of the packet list |
 | `GET /api/captures/<id>/packets/<index>` | Layers, fields and hex bytes of one packet |
+| `GET /api/captures/<id>/export?filename=` | Conversation list as a CSV download |
+
+Host names come from DNS answers in the capture (`backend/hostnames.py`) and are added to graph nodes and host details.
 
 ## Frontend
 

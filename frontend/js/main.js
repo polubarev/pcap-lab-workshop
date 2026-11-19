@@ -87,6 +87,7 @@ async function openCapture(load, label) {
     $("min-packets-value").textContent = "1";
 
     $("capture-name").textContent = `${capture.name} · ${fmt.number(capture.summary.packets)} packets`;
+    $("export-csv").href = `/api/captures/${capture.id}/export?filename=${encodeURIComponent(capture.name.replace(/\.p?cap$/i, ""))}-conversations.csv`;
     $("capture-chip").hidden = false;
     $("view-tabs").hidden = false;
     startScreen.hidden = true;
